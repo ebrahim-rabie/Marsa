@@ -9,10 +9,14 @@ import type {
   BuyRequest,
   Quote,
   Order,
+  OrderStage,
   InspectionReport,
+  OrderMessage,
   Review,
   Dispute,
   Payment,
+  CustomsStatus,
+  Json,
 } from '@/types/database';
 
 export * from '@/types/database';
@@ -221,13 +225,22 @@ export async function updateOrderCustomsInfo(
     acidNumber?: string;
     portOfEntry?: string;
     blNumber?: string;
-    customsStatus?: string;
+    shippingCarrier?: string;
+    customsStatus?: CustomsStatus;
+    fxRatesSnapshot?: Json;
   }
 ): Promise<boolean> {
   const adminClient = createSupabaseAdminClient();
   const updatePayload: Database['public']['Tables']['orders']['Update'] = {
     updated_at: new Date().toISOString(),
   };
+
+  if (customsData.acidNumber !== undefined) updatePayload.acid_number = customsData.acidNumber;
+  if (customsData.portOfEntry !== undefined) updatePayload.port_of_entry = customsData.portOfEntry;
+  if (customsData.blNumber !== undefined) updatePayload.bl_number = customsData.blNumber;
+  if (customsData.shippingCarrier !== undefined) updatePayload.shipping_carrier = customsData.shippingCarrier;
+  if (customsData.customsStatus !== undefined) updatePayload.customs_status = customsData.customsStatus;
+  if (customsData.fxRatesSnapshot !== undefined) updatePayload.fx_rates_snapshot = customsData.fxRatesSnapshot;
 
   const { error } = await adminClient
     .from('orders')
@@ -324,7 +337,40 @@ export async function submitReviewRecord(
 }
 
 // ==========================================
-// 8. Maintenance / Keepalive
+// 8. Order Negotiation Messages Repository
+// ==========================================
+
+export async function getOrderMessages(orderId: string): Promise<OrderMessage[]> {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase
+    .from('order_messages')
+    .select('*')
+    .eq('order_id', orderId)
+    .order('created_at', { ascending: true });
+
+  if (error || !data) return [];
+  return data;
+}
+
+export async function sendOrderMessage(
+  message: Database['public']['Tables']['order_messages']['Insert']
+): Promise<OrderMessage | null> {
+  const adminClient = createSupabaseAdminClient();
+  const { data, error } = await adminClient
+    .from('order_messages')
+    .insert(message)
+    .select('*')
+    .single();
+
+  if (error || !data) {
+    console.error('Error inserting order message:', error);
+    return null;
+  }
+  return data;
+}
+
+// ==========================================
+// 9. Maintenance / Keepalive
 // ==========================================
 
 export async function pingSupabaseKeepalive(): Promise<{

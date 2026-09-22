@@ -6,6 +6,50 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+export type CompanyType = 'buyer' | 'supplier_eg' | 'supplier_cn' | 'partner';
+export type UserRole = 'buyer' | 'supplier' | 'admin' | 'agent';
+export type VerificationMethod = 'documents' | 'video_call' | 'on_site_audit';
+export type SupplierPreference = 'egyptian' | 'chinese' | 'both';
+export type BuyRequestStatus =
+  | 'pending'
+  | 'sourcing'
+  | 'quotes_ready'
+  | 'buyer_reviewing'
+  | 'accepted'
+  | 'expired'
+  | 'cancelled';
+export type QuoteStatus = 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+export type OrderStatus = 'active' | 'completed' | 'disputed' | 'cancelled';
+export type OrderStageStatus = 'pending' | 'active' | 'completed' | 'skipped';
+export type CustomsStatus =
+  | 'acid_issued'
+  | 'in_transit'
+  | 'arrived_port'
+  | 'under_inspection'
+  | 'cleared';
+export type InspectionResult = 'passed' | 'failed' | 'conditional';
+export type DisputeType = 'quality' | 'quantity' | 'delay' | 'wrong_item' | 'other';
+export type DisputeStatus = 'open' | 'investigating' | 'resolved' | 'escalated';
+export type PaymentType =
+  | 'deposit'
+  | 'balance'
+  | 'commission'
+  | 'inspection_fee'
+  | 'refund';
+export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+export type DocumentType =
+  | 'contract'
+  | 'invoice'
+  | 'packing_list'
+  | 'bill_of_lading'
+  | 'acid_cert'
+  | 'customs_form'
+  | 'inspection_report'
+  | 'commercial_reg'
+  | 'tax_card'
+  | 'business_license'
+  | 'other';
+
 export interface Database {
   public: {
     Tables: {
@@ -14,7 +58,7 @@ export interface Database {
           id: string;
           name: string;
           name_ar: string | null;
-          type: 'buyer' | 'supplier_eg' | 'supplier_cn' | 'partner';
+          type: CompanyType;
           country: string | null;
           city: string | null;
           phone: string | null;
@@ -32,7 +76,7 @@ export interface Database {
           id?: string;
           name: string;
           name_ar?: string | null;
-          type: 'buyer' | 'supplier_eg' | 'supplier_cn' | 'partner';
+          type: CompanyType;
           country?: string | null;
           city?: string | null;
           phone?: string | null;
@@ -50,7 +94,7 @@ export interface Database {
           id?: string;
           name?: string;
           name_ar?: string | null;
-          type?: 'buyer' | 'supplier_eg' | 'supplier_cn' | 'partner';
+          type?: CompanyType;
           country?: string | null;
           city?: string | null;
           phone?: string | null;
@@ -66,6 +110,7 @@ export interface Database {
         };
         Relationships: [];
       };
+
       users: {
         Row: {
           id: string;
@@ -73,7 +118,7 @@ export interface Database {
           phone: string | null;
           full_name: string;
           full_name_ar: string | null;
-          role: 'buyer' | 'supplier' | 'admin' | 'agent';
+          role: UserRole;
           avatar_url: string | null;
           locale: string | null;
           company_id: string | null;
@@ -86,7 +131,7 @@ export interface Database {
           phone?: string | null;
           full_name: string;
           full_name_ar?: string | null;
-          role: 'buyer' | 'supplier' | 'admin' | 'agent';
+          role?: UserRole;
           avatar_url?: string | null;
           locale?: string | null;
           company_id?: string | null;
@@ -99,7 +144,7 @@ export interface Database {
           phone?: string | null;
           full_name?: string;
           full_name_ar?: string | null;
-          role?: 'buyer' | 'supplier' | 'admin' | 'agent';
+          role?: UserRole;
           avatar_url?: string | null;
           locale?: string | null;
           company_id?: string | null;
@@ -108,6 +153,7 @@ export interface Database {
         };
         Relationships: [];
       };
+
       suppliers: {
         Row: {
           id: string;
@@ -122,6 +168,9 @@ export interface Database {
           profile_bio_ar: string | null;
           min_order_value: number | null;
           lead_time_days: number | null;
+          factory_address: string | null;
+          factory_address_zh: string | null;
+          production_capacity: string | null;
           active: boolean;
           created_at: string;
           updated_at: string;
@@ -139,6 +188,9 @@ export interface Database {
           profile_bio_ar?: string | null;
           min_order_value?: number | null;
           lead_time_days?: number | null;
+          factory_address?: string | null;
+          factory_address_zh?: string | null;
+          production_capacity?: string | null;
           active?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -156,18 +208,22 @@ export interface Database {
           profile_bio_ar?: string | null;
           min_order_value?: number | null;
           lead_time_days?: number | null;
+          factory_address?: string | null;
+          factory_address_zh?: string | null;
+          production_capacity?: string | null;
           active?: boolean;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
       };
+
       supplier_verifications: {
         Row: {
           id: string;
           supplier_id: string;
           level: number;
-          method: 'documents' | 'video_call' | 'on_site_audit';
+          method: VerificationMethod;
           verified_by: string | null;
           evidence_urls: string[] | null;
           notes: string | null;
@@ -178,7 +234,7 @@ export interface Database {
           id?: string;
           supplier_id: string;
           level: number;
-          method: 'documents' | 'video_call' | 'on_site_audit';
+          method: VerificationMethod;
           verified_by?: string | null;
           evidence_urls?: string[] | null;
           notes?: string | null;
@@ -189,7 +245,7 @@ export interface Database {
           id?: string;
           supplier_id?: string;
           level?: number;
-          method?: 'documents' | 'video_call' | 'on_site_audit';
+          method?: VerificationMethod;
           verified_by?: string | null;
           evidence_urls?: string[] | null;
           notes?: string | null;
@@ -198,6 +254,7 @@ export interface Database {
         };
         Relationships: [];
       };
+
       buy_requests: {
         Row: {
           id: string;
@@ -213,9 +270,9 @@ export interface Database {
           budget_min: number | null;
           budget_max: number | null;
           budget_currency: string | null;
-          supplier_pref: 'egyptian' | 'chinese' | 'both' | null;
+          supplier_pref: SupplierPreference | null;
           delivery_date: string | null;
-          status: 'pending' | 'sourcing' | 'quotes_ready' | 'buyer_reviewing' | 'accepted' | 'expired' | 'cancelled';
+          status: BuyRequestStatus;
           notes: string | null;
           attachments: string[] | null;
           source: string | null;
@@ -237,9 +294,9 @@ export interface Database {
           budget_min?: number | null;
           budget_max?: number | null;
           budget_currency?: string | null;
-          supplier_pref?: 'egyptian' | 'chinese' | 'both' | null;
+          supplier_pref?: SupplierPreference | null;
           delivery_date?: string | null;
-          status?: 'pending' | 'sourcing' | 'quotes_ready' | 'buyer_reviewing' | 'accepted' | 'expired' | 'cancelled';
+          status?: BuyRequestStatus;
           notes?: string | null;
           attachments?: string[] | null;
           source?: string | null;
@@ -261,9 +318,9 @@ export interface Database {
           budget_min?: number | null;
           budget_max?: number | null;
           budget_currency?: string | null;
-          supplier_pref?: 'egyptian' | 'chinese' | 'both' | null;
+          supplier_pref?: SupplierPreference | null;
           delivery_date?: string | null;
-          status?: 'pending' | 'sourcing' | 'quotes_ready' | 'buyer_reviewing' | 'accepted' | 'expired' | 'cancelled';
+          status?: BuyRequestStatus;
           notes?: string | null;
           attachments?: string[] | null;
           source?: string | null;
@@ -273,6 +330,7 @@ export interface Database {
         };
         Relationships: [];
       };
+
       quotes: {
         Row: {
           id: string;
@@ -291,7 +349,7 @@ export interface Database {
           payment_terms: string | null;
           sample_available: boolean;
           sample_cost: number | null;
-          status: 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+          status: QuoteStatus;
           notes: string | null;
           attachments: string[] | null;
           submitted_by: string | null;
@@ -304,7 +362,7 @@ export interface Database {
           buy_request_id: string;
           supplier_id: string;
           unit_price: number;
-          currency: string;
+          currency?: string;
           moq?: number | null;
           total_price: number;
           lead_time_days?: number | null;
@@ -316,7 +374,7 @@ export interface Database {
           payment_terms?: string | null;
           sample_available?: boolean;
           sample_cost?: number | null;
-          status?: 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+          status?: QuoteStatus;
           notes?: string | null;
           attachments?: string[] | null;
           submitted_by?: string | null;
@@ -341,7 +399,7 @@ export interface Database {
           payment_terms?: string | null;
           sample_available?: boolean;
           sample_cost?: number | null;
-          status?: 'pending' | 'accepted' | 'rejected' | 'expired' | 'cancelled';
+          status?: QuoteStatus;
           notes?: string | null;
           attachments?: string[] | null;
           submitted_by?: string | null;
@@ -351,6 +409,7 @@ export interface Database {
         };
         Relationships: [];
       };
+
       orders: {
         Row: {
           id: string;
@@ -366,13 +425,19 @@ export interface Database {
           inspection_fee: number | null;
           coordination_fee: number | null;
           current_stage: number;
-          status: 'active' | 'completed' | 'disputed' | 'cancelled';
+          status: OrderStatus;
           deposit_amount: number | null;
           deposit_paid: boolean;
           balance_amount: number | null;
           balance_released: boolean;
           estimated_delivery: string | null;
           actual_delivery: string | null;
+          acid_number: string | null;
+          port_of_entry: string | null;
+          bl_number: string | null;
+          shipping_carrier: string | null;
+          customs_status: CustomsStatus;
+          fx_rates_snapshot: Json | null;
           completed_at: string | null;
           created_at: string;
           updated_at: string;
@@ -385,19 +450,25 @@ export interface Database {
           buyer_id: string;
           supplier_id: string;
           total_value: number;
-          currency: string;
+          currency?: string;
           commission_rate?: number | null;
           commission_amount?: number | null;
           inspection_fee?: number | null;
           coordination_fee?: number | null;
           current_stage?: number;
-          status?: 'active' | 'completed' | 'disputed' | 'cancelled';
+          status?: OrderStatus;
           deposit_amount?: number | null;
           deposit_paid?: boolean;
           balance_amount?: number | null;
           balance_released?: boolean;
           estimated_delivery?: string | null;
           actual_delivery?: string | null;
+          acid_number?: string | null;
+          port_of_entry?: string | null;
+          bl_number?: string | null;
+          shipping_carrier?: string | null;
+          customs_status?: CustomsStatus;
+          fx_rates_snapshot?: Json | null;
           completed_at?: string | null;
           created_at?: string;
           updated_at?: string;
@@ -416,25 +487,32 @@ export interface Database {
           inspection_fee?: number | null;
           coordination_fee?: number | null;
           current_stage?: number;
-          status?: 'active' | 'completed' | 'disputed' | 'cancelled';
+          status?: OrderStatus;
           deposit_amount?: number | null;
           deposit_paid?: boolean;
           balance_amount?: number | null;
           balance_released?: boolean;
           estimated_delivery?: string | null;
           actual_delivery?: string | null;
+          acid_number?: string | null;
+          port_of_entry?: string | null;
+          bl_number?: string | null;
+          shipping_carrier?: string | null;
+          customs_status?: CustomsStatus;
+          fx_rates_snapshot?: Json | null;
           completed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
       };
+
       order_stages: {
         Row: {
           id: string;
           order_id: string;
           stage: number;
-          status: 'pending' | 'active' | 'completed' | 'skipped';
+          status: OrderStageStatus;
           started_at: string | null;
           completed_at: string | null;
           notes: string | null;
@@ -446,7 +524,7 @@ export interface Database {
           id?: string;
           order_id: string;
           stage: number;
-          status?: 'pending' | 'active' | 'completed' | 'skipped';
+          status?: OrderStageStatus;
           started_at?: string | null;
           completed_at?: string | null;
           notes?: string | null;
@@ -458,7 +536,7 @@ export interface Database {
           id?: string;
           order_id?: string;
           stage?: number;
-          status?: 'pending' | 'active' | 'completed' | 'skipped';
+          status?: OrderStageStatus;
           started_at?: string | null;
           completed_at?: string | null;
           notes?: string | null;
@@ -468,13 +546,14 @@ export interface Database {
         };
         Relationships: [];
       };
+
       inspection_reports: {
         Row: {
           id: string;
           order_id: string;
-          inspector: string | null;
-          inspection_date: string | null;
-          result: 'passed' | 'failed' | 'conditional' | null;
+          inspector: string;
+          inspection_date: string;
+          result: InspectionResult;
           total_units: number | null;
           defective_units: number | null;
           photo_urls: string[] | null;
@@ -485,9 +564,9 @@ export interface Database {
         Insert: {
           id?: string;
           order_id: string;
-          inspector?: string | null;
-          inspection_date?: string | null;
-          result?: 'passed' | 'failed' | 'conditional' | null;
+          inspector: string;
+          inspection_date: string;
+          result: InspectionResult;
           total_units?: number | null;
           defective_units?: number | null;
           photo_urls?: string[] | null;
@@ -498,9 +577,9 @@ export interface Database {
         Update: {
           id?: string;
           order_id?: string;
-          inspector?: string | null;
-          inspection_date?: string | null;
-          result?: 'passed' | 'failed' | 'conditional' | null;
+          inspector?: string;
+          inspection_date?: string;
+          result?: InspectionResult;
           total_units?: number | null;
           defective_units?: number | null;
           photo_urls?: string[] | null;
@@ -510,6 +589,50 @@ export interface Database {
         };
         Relationships: [];
       };
+
+      order_messages: {
+        Row: {
+          id: string;
+          order_id: string;
+          sender_id: string;
+          sender_role: UserRole;
+          original_text: string;
+          translated_text: string | null;
+          source_language: string;
+          target_language: string;
+          attachments: Json | null;
+          read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          sender_id: string;
+          sender_role: UserRole;
+          original_text: string;
+          translated_text?: string | null;
+          source_language?: string;
+          target_language?: string;
+          attachments?: Json | null;
+          read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          order_id?: string;
+          sender_id?: string;
+          sender_role?: UserRole;
+          original_text?: string;
+          translated_text?: string | null;
+          source_language?: string;
+          target_language?: string;
+          attachments?: Json | null;
+          read?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+
       reviews: {
         Row: {
           id: string;
@@ -552,15 +675,16 @@ export interface Database {
         };
         Relationships: [];
       };
+
       disputes: {
         Row: {
           id: string;
           order_id: string;
           raised_by: string;
-          type: 'quality' | 'quantity' | 'delay' | 'wrong_item' | 'other' | null;
+          type: DisputeType;
           description: string | null;
           evidence_urls: string[] | null;
-          status: 'open' | 'investigating' | 'resolved' | 'escalated';
+          status: DisputeStatus;
           resolution: string | null;
           resolved_at: string | null;
           created_at: string;
@@ -570,10 +694,10 @@ export interface Database {
           id?: string;
           order_id: string;
           raised_by: string;
-          type?: 'quality' | 'quantity' | 'delay' | 'wrong_item' | 'other' | null;
+          type: DisputeType;
           description?: string | null;
           evidence_urls?: string[] | null;
-          status?: 'open' | 'investigating' | 'resolved' | 'escalated';
+          status?: DisputeStatus;
           resolution?: string | null;
           resolved_at?: string | null;
           created_at?: string;
@@ -583,10 +707,10 @@ export interface Database {
           id?: string;
           order_id?: string;
           raised_by?: string;
-          type?: 'quality' | 'quantity' | 'delay' | 'wrong_item' | 'other' | null;
+          type?: DisputeType;
           description?: string | null;
           evidence_urls?: string[] | null;
-          status?: 'open' | 'investigating' | 'resolved' | 'escalated';
+          status?: DisputeStatus;
           resolution?: string | null;
           resolved_at?: string | null;
           created_at?: string;
@@ -594,23 +718,13 @@ export interface Database {
         };
         Relationships: [];
       };
+
       documents: {
         Row: {
           id: string;
           order_id: string | null;
           company_id: string | null;
-          type:
-            | 'contract'
-            | 'invoice'
-            | 'packing_list'
-            | 'bill_of_lading'
-            | 'acid_cert'
-            | 'customs_form'
-            | 'inspection_report'
-            | 'commercial_reg'
-            | 'tax_card'
-            | 'business_license'
-            | 'other';
+          type: DocumentType;
           name: string;
           file_url: string;
           uploaded_by: string | null;
@@ -620,18 +734,7 @@ export interface Database {
           id?: string;
           order_id?: string | null;
           company_id?: string | null;
-          type:
-            | 'contract'
-            | 'invoice'
-            | 'packing_list'
-            | 'bill_of_lading'
-            | 'acid_cert'
-            | 'customs_form'
-            | 'inspection_report'
-            | 'commercial_reg'
-            | 'tax_card'
-            | 'business_license'
-            | 'other';
+          type: DocumentType;
           name: string;
           file_url: string;
           uploaded_by?: string | null;
@@ -641,18 +744,7 @@ export interface Database {
           id?: string;
           order_id?: string | null;
           company_id?: string | null;
-          type?:
-            | 'contract'
-            | 'invoice'
-            | 'packing_list'
-            | 'bill_of_lading'
-            | 'acid_cert'
-            | 'customs_form'
-            | 'inspection_report'
-            | 'commercial_reg'
-            | 'tax_card'
-            | 'business_license'
-            | 'other';
+          type?: DocumentType;
           name?: string;
           file_url?: string;
           uploaded_by?: string | null;
@@ -660,14 +752,15 @@ export interface Database {
         };
         Relationships: [];
       };
+
       payments: {
         Row: {
           id: string;
           order_id: string;
-          type: 'deposit' | 'balance' | 'commission' | 'inspection_fee' | 'refund' | null;
+          type: PaymentType;
           amount: number;
           currency: string;
-          status: 'pending' | 'completed' | 'failed' | 'refunded';
+          status: PaymentStatus;
           method: string | null;
           reference: string | null;
           paid_at: string | null;
@@ -677,10 +770,10 @@ export interface Database {
         Insert: {
           id?: string;
           order_id: string;
-          type?: 'deposit' | 'balance' | 'commission' | 'inspection_fee' | 'refund' | null;
+          type: PaymentType;
           amount: number;
-          currency: string;
-          status?: 'pending' | 'completed' | 'failed' | 'refunded';
+          currency?: string;
+          status?: PaymentStatus;
           method?: string | null;
           reference?: string | null;
           paid_at?: string | null;
@@ -690,10 +783,10 @@ export interface Database {
         Update: {
           id?: string;
           order_id?: string;
-          type?: 'deposit' | 'balance' | 'commission' | 'inspection_fee' | 'refund' | null;
+          type?: PaymentType;
           amount?: number;
           currency?: string;
-          status?: 'pending' | 'completed' | 'failed' | 'refunded';
+          status?: PaymentStatus;
           method?: string | null;
           reference?: string | null;
           paid_at?: string | null;
@@ -702,6 +795,7 @@ export interface Database {
         };
         Relationships: [];
       };
+
       notifications: {
         Row: {
           id: string;
@@ -759,7 +853,23 @@ export interface Database {
         Returns: boolean;
       };
     };
-    Enums: Record<string, never>;
+    Enums: {
+      company_type: CompanyType;
+      user_role: UserRole;
+      verification_method: VerificationMethod;
+      supplier_preference: SupplierPreference;
+      buy_request_status: BuyRequestStatus;
+      quote_status: QuoteStatus;
+      order_status: OrderStatus;
+      order_stage_status: OrderStageStatus;
+      customs_status: CustomsStatus;
+      inspection_result: InspectionResult;
+      dispute_type: DisputeType;
+      dispute_status: DisputeStatus;
+      payment_type: PaymentType;
+      payment_status: PaymentStatus;
+      document_type: DocumentType;
+    };
   };
 }
 
@@ -773,6 +883,7 @@ export type Quote = Database['public']['Tables']['quotes']['Row'];
 export type Order = Database['public']['Tables']['orders']['Row'];
 export type OrderStage = Database['public']['Tables']['order_stages']['Row'];
 export type InspectionReport = Database['public']['Tables']['inspection_reports']['Row'];
+export type OrderMessage = Database['public']['Tables']['order_messages']['Row'];
 export type Review = Database['public']['Tables']['reviews']['Row'];
 export type Dispute = Database['public']['Tables']['disputes']['Row'];
 export type Document = Database['public']['Tables']['documents']['Row'];
