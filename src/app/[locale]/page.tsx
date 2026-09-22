@@ -1,7 +1,8 @@
 import { setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 
-export default function LandingPage({ params: { locale } }: { params: { locale: string } }) {
+export default async function LandingPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   setRequestLocale(locale);
 
   const isAr = locale === 'ar';
@@ -83,9 +84,9 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
               { num: 7, type: 'yellow', title: isAr ? 'استلام وتقييم' : 'Receipt & review', desc: isAr ? 'صفقة تمت بنجاح' : 'Deal done' },
             ].map((step, idx) => (
               <div key={idx} className="flex flex-col items-center text-center group">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-4 bg-white transition-transform group-hover:scale-110
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg mb-4 bg-white transition-transform group-hover:scale-110 numbering-latn
                   ${step.type === 'yellow' ? 'border-4 border-[#F2B01E] text-[#0A2F38]' : 'border-2 border-[#465A60] text-[#465A60]'}
-                `} style={{ numberingSystem: 'latn' }}>
+                `}>
                   {step.num}
                 </div>
                 <h4 className="font-bold text-sm mb-1">{step.title}</h4>
@@ -107,9 +108,9 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
               { num: 7, type: 'yellow', title: isAr ? 'استلام وتقييم' : 'Receipt & review', desc: isAr ? 'صفقة تمت بنجاح' : 'Deal done' },
             ].map((step, idx) => (
               <div key={idx} className="relative">
-                <div className={`absolute -start-[42px] top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[#F3F7F6]
+                <div className={`absolute -start-[42px] top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold bg-[#F3F7F6] numbering-latn
                   ${step.type === 'yellow' ? 'border-4 border-[#F2B01E] text-[#0A2F38]' : 'border-2 border-[#465A60] text-[#465A60]'}
-                `} style={{ numberingSystem: 'latn' }}>
+                `}>
                   {step.num}
                 </div>
                 <div>
@@ -239,15 +240,15 @@ export default function LandingPage({ params: { locale } }: { params: { locale: 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x md:divide-white/10 rtl:divide-x-reverse">
             <div className="py-4">
-              <div className="text-4xl md:text-5xl font-display font-bold text-[#F2B01E] mb-2" style={{ numberingSystem: 'latn' }}>47</div>
+              <div className="text-4xl md:text-5xl font-display font-bold text-[#F2B01E] mb-2 numbering-latn">47</div>
               <div className="text-white/80 font-medium">{isAr ? 'صفقة مكتملة' : 'Completed deals'}</div>
             </div>
             <div className="py-4">
-              <div className="text-4xl md:text-5xl font-display font-bold text-[#F2B01E] mb-2" style={{ numberingSystem: 'latn' }}>38</div>
+              <div className="text-4xl md:text-5xl font-display font-bold text-[#F2B01E] mb-2 numbering-latn">38</div>
               <div className="text-white/80 font-medium">{isAr ? 'مورد متحقق' : 'Verified suppliers'}</div>
             </div>
             <div className="py-4">
-              <div className="text-4xl md:text-5xl font-display font-bold text-[#F2B01E] mb-2" style={{ numberingSystem: 'latn' }}>{isAr ? '72 ساعة' : '72 hours'}</div>
+              <div className="text-4xl md:text-5xl font-display font-bold text-[#F2B01E] mb-2 numbering-latn">{isAr ? '72 ساعة' : '72 hours'}</div>
               <div className="text-white/80 font-medium">{isAr ? 'متوسط وقت أول عرض' : 'Avg time to first quote'}</div>
             </div>
           </div>

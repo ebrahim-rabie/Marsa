@@ -1,36 +1,70 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { insertBuyRequest } from './actions'
-import { CheckCircle2, Upload, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Label } from '@/components/ui/label'
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { insertBuyRequest, type BuyRequestFormData } from './actions';
+import { CheckCircle2, Upload, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select } from '@/components/ui/select';
 
-const STEPS = 4
+const STEPS = 4;
+
+const CATEGORY_OPTIONS = [
+  { value: 'packaging', label: 'تعبئة وتغليف (Packaging)' },
+  { value: 'lighting', label: 'إضاءة (Lighting)' },
+  { value: 'spare_parts', label: 'قطع غيار وأدوات (Spare Parts)' },
+  { value: 'electrical', label: 'مستلزمات كهربائية (Electrical)' },
+  { value: 'textiles', label: 'منسوجات وأقمشة (Textiles)' },
+  { value: 'raw_materials', label: 'مواد خام للمصانع (Raw Materials)' },
+  { value: 'other', label: 'أخرى (Other)' },
+];
+
+const UNIT_OPTIONS = [
+  { value: 'units', label: 'قطعة / وحدة (Units)' },
+  { value: 'kg', label: 'كيلوجرام (Kg)' },
+  { value: 'meters', label: 'متر (Meters)' },
+  { value: 'rolls', label: 'لفة / رول (Rolls)' },
+  { value: 'boxes', label: 'كرتونة / صندوق (Boxes)' },
+  { value: 'pallets', label: 'بالتة (Pallets)' },
+  { value: 'other', label: 'أخرى (Other)' },
+];
+
+const CURRENCY_OPTIONS = [
+  { value: 'USD', label: 'دولار أمريكي (USD)' },
+  { value: 'EGP', label: 'جنيه مصري (EGP)' },
+  { value: 'CNY', label: 'يوان صيني (CNY)' },
+];
+
+const SOURCE_OPTIONS = [
+  { value: '', label: 'اختر مصدر المعرفة...' },
+  { value: 'facebook', label: 'مجموعات فيسبوك (Facebook)' },
+  { value: 'whatsapp', label: 'جروب واتساب (WhatsApp)' },
+  { value: 'telegram', label: 'قناة تليجرام (Telegram)' },
+  { value: 'friend', label: 'ترشيح من صديق أو تاجر' },
+  { value: 'search', label: 'بحث جوجل' },
+  { value: 'other', label: 'أخرى' },
+];
 
 export default function BuyRequestForm() {
-  const t = useTranslations('BuyRequestForm')
-  const [step, setStep] = useState(1)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [requestNumber, setRequestNumber] = useState('')
-  const [images, setImages] = useState<File[]>([])
-  const [formData, setFormData] = useState({
+  const t = useTranslations('BuyRequestForm');
+  const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [requestNumber, setRequestNumber] = useState('');
+  const [images, setImages] = useState<File[]>([]);
+  const [formData, setFormData] = useState<BuyRequestFormData>({
     productName: '',
-    category: '',
+    category: 'packaging',
     specifications: '',
     quantity: '',
-    unit: '',
+    unit: 'units',
     budgetMin: '',
     budgetMax: '',
     currency: 'USD',
-    supplierPreference: 'both',
+    supplierPreference: 'both' as const,
     deliveryDate: '',
     notes: '',
     fullName: '',
@@ -38,288 +72,278 @@ export default function BuyRequestForm() {
     phone: '',
     email: '',
     source: ''
-  })
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files)
-      setImages(prev => [...prev, ...newFiles].slice(0, 5))
+      const newFiles = Array.from(e.target.files);
+      setImages(prev => [...prev, ...newFiles].slice(0, 5));
     }
-  }
+  };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index))
-  }
+    setImages(prev => prev.filter((_, i) => i !== index));
+  };
 
   const validateStep = () => {
     switch (step) {
       case 1:
-        return formData.productName && formData.category && formData.specifications
+        return Boolean(formData.productName.trim() && formData.category && formData.specifications.trim());
       case 2:
-        return formData.quantity && formData.unit
+        return Boolean(formData.quantity.trim() && formData.unit);
       case 3:
-        return true // All optional or have defaults
+        return true; // All preferences have defaults or are optional
       case 4:
-        return formData.fullName && formData.companyName && formData.phone
+        return Boolean(formData.fullName.trim() && formData.companyName.trim() && formData.phone.trim());
       default:
-        return false
+        return false;
     }
-  }
+  };
 
   const handleNext = () => {
     if (validateStep() && step < STEPS) {
-      setStep(prev => prev + 1)
+      setStep(prev => prev + 1);
     }
-  }
+  };
 
   const handlePrev = () => {
     if (step > 1) {
-      setStep(prev => prev - 1)
+      setStep(prev => prev - 1);
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    if (!validateStep()) return
+    if (!validateStep()) return;
     
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
-      const result = await insertBuyRequest(formData)
+      const result = await insertBuyRequest(formData);
       if (result.success && result.requestNumber) {
-        setRequestNumber(result.requestNumber)
-        setIsSuccess(true)
+        setRequestNumber(result.requestNumber);
+        setIsSuccess(true);
       } else {
-        // Handle error conceptually here
-        console.error(result.error)
+        console.error(result.error);
       }
     } catch (error) {
-      console.error(error)
+      console.error(error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isSuccess) {
     return (
-      <div className="max-w-md mx-auto mt-10 p-8 bg-sea-mist rounded-xl shadow-sm text-center">
-        <CheckCircle2 className="w-16 h-16 text-verified-green mx-auto mb-4" />
-        <h2 className="text-2xl font-reem-kufi font-bold text-deep-tide mb-2">
-          {t('successTitle') || 'تم استلام طلبك!'}
+      <div className="max-w-md mx-auto my-16 p-8 bg-[#F3F7F6] rounded-2xl shadow-sm text-center border border-[#D2DDDB]">
+        <CheckCircle2 className="w-16 h-16 text-[#1B7A50] mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-[#0F4C5C] mb-2 font-display">
+          تم استلام طلب الشراء بنجاح!
         </h2>
-        <p className="text-steel mb-6">
-          {t('successMessage') || 'هنتواصل معاك خلال 24 ساعة.'}
+        <p className="text-[#465A60] mb-6">
+          سيقوم فريق العمل بفرز الطلب وترشيح 3 عروض أسعار موثّقة والتواصل معك خلال 24 ساعة.
         </p>
-        <div className="bg-white p-4 rounded-lg mb-6 border border-gray-100">
-          <p className="text-sm text-steel mb-1">رقم الطلب</p>
-          <p className="font-bricolage font-bold text-xl text-harbor-petrol numbering-latn" dir="ltr">
+        <div className="bg-white p-4 rounded-xl mb-6 border border-[#D2DDDB]">
+          <p className="text-xs text-[#465A60] mb-1">رقم طلب الشراء</p>
+          <p className="font-bold text-2xl text-[#0F4C5C] font-mono" dir="ltr">
             {requestNumber}
           </p>
         </div>
-        <Button className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white" asChild>
-          <a href="https://wa.me/123456789" target="_blank" rel="noopener noreferrer">
-            {t('whatsappContact') || 'تواصل معنا على واتساب'}
-          </a>
-        </Button>
+        <a 
+          href={`https://wa.me/201000000000?text=${encodeURIComponent(`مرحباً، أرسلت طلب شراء رقم ${requestNumber} وأود المتابعة.`)}`}
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center w-full bg-[#1B7A50] hover:bg-[#15606F] text-white py-3 px-4 rounded-lg font-bold transition-colors"
+        >
+          متابعة الطلب عبر واتساب
+        </a>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-8 px-4">
+    <div className="max-w-2xl mx-auto py-12 px-4 sm:px-6">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold font-display text-[#0F4C5C] mb-2">
+          طلب شراء جديد (RFQ)
+        </h1>
+        <p className="text-[#465A60] text-sm">
+          احصل على عروض أسعار مقارنة من مصانع موثّقة في مصر والصين
+        </p>
+      </div>
+
       {/* Progress Indicator */}
       <div className="mb-8">
         <div className="flex justify-between items-center relative">
-          <div className="absolute top-1/2 left-0 right-0 h-1 bg-gray-200 -z-10 -translate-y-1/2"></div>
+          <div className="absolute top-1/2 start-0 end-0 h-1 bg-[#D2DDDB] -z-10 -translate-y-1/2"></div>
           <div 
-            className="absolute top-1/2 left-0 h-1 bg-harbor-petrol -z-10 -translate-y-1/2 transition-all duration-300"
-            style={{ width: \`\${((step - 1) / (STEPS - 1)) * 100}%\` }}
+            className="absolute top-1/2 start-0 h-1 bg-[#0F4C5C] -z-10 -translate-y-1/2 transition-all duration-300"
+            style={{ width: `${((step - 1) / (STEPS - 1)) * 100}%` }}
           ></div>
           
-          {[1, 2, 3, 4].map(i => (
-            <div 
-              key={i} 
-              className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors",
-                step >= i ? "bg-harbor-petrol text-white" : "bg-gray-200 text-gray-500"
-              )}
-            >
-              {i}
+          {[
+            { num: 1, label: 'المنتج' },
+            { num: 2, label: 'الكمية' },
+            { num: 3, label: 'التفضيلات' },
+            { num: 4, label: 'التواصل' }
+          ].map(s => (
+            <div key={s.num} className="flex flex-col items-center">
+              <div 
+                className={cn(
+                  "w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all shadow-sm",
+                  step === s.num ? "bg-[#F2B01E] text-[#2E2200] ring-4 ring-[#E3EEED]" :
+                  step > s.num ? "bg-[#0F4C5C] text-white" : "bg-white text-[#465A60] border border-[#D2DDDB]"
+                )}
+              >
+                {s.num}
+              </div>
+              <span className="text-xs mt-1 font-medium text-[#465A60] hidden sm:block">{s.label}</span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#D2DDDB] p-6 md:p-8">
         {/* Step 1: Product Details */}
         {step === 1 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-reem-kufi font-bold text-harbor-petrol mb-4">
-              {t('step1Title') || 'تفاصيل المنتج'}
-            </h2>
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold font-display text-[#0F4C5C] mb-1">
+                الخطوة 1: مواصفات المنتج
+              </h2>
+              <p className="text-xs text-[#465A60]">صف ما ترغب بشرائه بدقة للحصول على عروض مطابقة</p>
+            </div>
             
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="productName">{t('productName') || 'اسم المنتج'} *</Label>
-                <Input 
-                  id="productName" 
-                  name="productName" 
-                  value={formData.productName} 
-                  onChange={handleInputChange} 
-                  required 
-                />
-              </div>
+            <Input 
+              id="productName" 
+              name="productName" 
+              label="اسم المنتج المطلوب *"
+              placeholder="مثال: عبوات كرتون مضلع 3 طبقات، أو ألواح إضاءة LED 60x60"
+              value={formData.productName} 
+              onChange={handleInputChange} 
+              required 
+            />
 
-              <div>
-                <Label>{t('category') || 'التصنيف'} *</Label>
-                <Select value={formData.category} onValueChange={(v) => handleSelectChange('category', v)}>
-                  <SelectTrigger dir="rtl">
-                    <SelectValue placeholder={t('selectCategory') || 'اختر التصنيف'} />
-                  </SelectTrigger>
-                  <SelectContent dir="rtl">
-                    <SelectItem value="packaging">تعبئة وتغليف</SelectItem>
-                    <SelectItem value="lighting">إضاءة</SelectItem>
-                    <SelectItem value="spare_parts">قطع غيار</SelectItem>
-                    <SelectItem value="electrical">كهربائيات</SelectItem>
-                    <SelectItem value="textiles">منسوجات</SelectItem>
-                    <SelectItem value="raw_materials">مواد خام</SelectItem>
-                    <SelectItem value="other">أخرى</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <Select 
+              id="category"
+              label="فئة المنتج *"
+              value={formData.category} 
+              onChange={(e) => handleSelectChange('category', e.target.value)}
+              options={CATEGORY_OPTIONS}
+            />
 
-              <div>
-                <Label htmlFor="specifications">{t('specifications') || 'المواصفات'} *</Label>
-                <Textarea 
-                  id="specifications" 
-                  name="specifications" 
-                  placeholder={t('specificationsPlaceholder') || 'اكتب المواصفات بالتفصيل: الخامة، المقاس، اللون...'} 
-                  value={formData.specifications} 
-                  onChange={handleInputChange} 
-                  className="min-h-[100px]"
-                  required 
-                />
-              </div>
+            <Textarea 
+              id="specifications" 
+              name="specifications" 
+              label="المواصفات الفنية المطلوبة *"
+              placeholder="اكتب المواصفات بالتفصيل: الخامة، الأبعاد، الوزن، السماكة، اللون، متطلبات التغليف أو أي معايير جودة خاصة..." 
+              value={formData.specifications} 
+              onChange={handleInputChange} 
+              rows={4}
+              required 
+            />
 
-              <div>
-                <Label>{t('referenceImages') || 'صور مرجعية (اختياري - بحد أقصى 5 صور)'}</Label>
-                <div className="mt-2 flex items-center justify-center w-full">
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500">اضغط لرفع الصور</p>
-                    </div>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept="image/*" 
-                      multiple 
-                      onChange={handleImageUpload} 
-                      disabled={images.length >= 5}
-                    />
-                  </label>
-                </div>
-                {images.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {images.map((file, idx) => (
-                      <div key={idx} className="relative w-16 h-16 rounded-md overflow-hidden bg-gray-100 border">
-                        <img src={URL.createObjectURL(file)} alt="preview" className="object-cover w-full h-full" />
-                        <button 
-                          onClick={() => removeImage(idx)} 
-                          className="absolute top-1 right-1 bg-white rounded-full p-0.5 shadow-sm hover:bg-red-50"
-                        >
-                          <X className="w-3 h-3 text-alert-red" />
-                        </button>
-                      </div>
-                    ))}
+            <div>
+              <label className="text-sm font-medium text-[#465A60] block mb-2">
+                صور مرجعية أو رسومات توضيحية (اختياري - حتى 5 صور)
+              </label>
+              <div className="flex items-center justify-center w-full">
+                <label className="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-[#D2DDDB] rounded-xl cursor-pointer hover:bg-[#F3F7F6] transition-colors">
+                  <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                    <Upload className="w-6 h-6 text-[#465A60] mb-1" />
+                    <p className="text-xs text-[#465A60]">اضغط لرفع صور العينة أو التصميم</p>
                   </div>
-                )}
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*" 
+                    multiple 
+                    onChange={handleImageUpload} 
+                    disabled={images.length >= 5}
+                  />
+                </label>
               </div>
+              {images.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {images.map((file, idx) => (
+                    <div key={idx} className="relative w-14 h-14 rounded-lg overflow-hidden bg-gray-100 border border-[#D2DDDB]">
+                      <img src={URL.createObjectURL(file)} alt="preview" className="object-cover w-full h-full" />
+                      <button 
+                        type="button"
+                        onClick={() => removeImage(idx)} 
+                        className="absolute top-1 end-1 bg-white/90 rounded-full p-0.5 shadow-sm hover:bg-red-50"
+                      >
+                        <X className="w-3 h-3 text-[#B42318]" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
 
         {/* Step 2: Quantity & Budget */}
         {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-reem-kufi font-bold text-harbor-petrol mb-4">
-              {t('step2Title') || 'الكمية والميزانية'}
-            </h2>
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold font-display text-[#0F4C5C] mb-1">
+                الخطوة 2: الكمية والميزانية
+              </h2>
+              <p className="text-xs text-[#465A60]">تساعد الكمية المصانع على تقديم أفضل أسعار الجملة الممكنة</p>
+            </div>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="quantity">{t('quantity') || 'الكمية'} *</Label>
-                <Input 
-                  id="quantity" 
-                  name="quantity" 
-                  type="number"
-                  value={formData.quantity} 
-                  onChange={handleInputChange} 
-                  className="numbering-latn"
-                  required 
-                />
-              </div>
-              <div>
-                <Label>{t('unit') || 'الوحدة'} *</Label>
-                <Select value={formData.unit} onValueChange={(v) => handleSelectChange('unit', v)}>
-                  <SelectTrigger dir="rtl">
-                    <SelectValue placeholder="اختر الوحدة" />
-                  </SelectTrigger>
-                  <SelectContent dir="rtl">
-                    <SelectItem value="units">وحدة/قطعة</SelectItem>
-                    <SelectItem value="kg">كيلوجرام</SelectItem>
-                    <SelectItem value="meters">متر</SelectItem>
-                    <SelectItem value="rolls">لفة/رول</SelectItem>
-                    <SelectItem value="boxes">صندوق</SelectItem>
-                    <SelectItem value="pallets">بالتة</SelectItem>
-                    <SelectItem value="other">أخرى</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input 
+                id="quantity" 
+                name="quantity" 
+                label="الكمية المطلوبة *"
+                placeholder="مثال: 5000"
+                type="number"
+                value={formData.quantity} 
+                onChange={handleInputChange} 
+                required 
+              />
+              <Select 
+                id="unit"
+                label="وحدة القياس *"
+                value={formData.unit} 
+                onChange={(e) => handleSelectChange('unit', e.target.value)}
+                options={UNIT_OPTIONS}
+              />
             </div>
 
-            <div className="space-y-4 mt-6">
-              <Label>{t('budgetRange') || 'الميزانية المستهدفة (اختياري)'}</Label>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Input 
-                    placeholder="الحد الأدنى" 
-                    name="budgetMin" 
-                    type="number"
-                    value={formData.budgetMin} 
-                    onChange={handleInputChange} 
-                    className="numbering-latn"
-                  />
-                </div>
-                <div>
-                  <Input 
-                    placeholder="الحد الأقصى" 
-                    name="budgetMax" 
-                    type="number"
-                    value={formData.budgetMax} 
-                    onChange={handleInputChange} 
-                    className="numbering-latn"
-                  />
-                </div>
-                <div>
-                  <Select value={formData.currency} onValueChange={(v) => handleSelectChange('currency', v)}>
-                    <SelectTrigger dir="rtl">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent dir="rtl">
-                      <SelectItem value="USD">دولار (USD)</SelectItem>
-                      <SelectItem value="EGP">جنيه (EGP)</SelectItem>
-                      <SelectItem value="CNY">يوان (CNY)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="pt-2">
+              <label className="text-sm font-medium text-[#465A60] block mb-2">
+                الميزانية الإجمالية التقديرية (اختياري)
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <Input 
+                  placeholder="الحد الأدنى" 
+                  name="budgetMin" 
+                  type="number"
+                  value={formData.budgetMin} 
+                  onChange={handleInputChange} 
+                />
+                <Input 
+                  placeholder="الحد الأقصى" 
+                  name="budgetMax" 
+                  type="number"
+                  value={formData.budgetMax} 
+                  onChange={handleInputChange} 
+                />
+                <Select 
+                  value={formData.currency} 
+                  onChange={(e) => handleSelectChange('currency', e.target.value)}
+                  options={CURRENCY_OPTIONS}
+                />
               </div>
             </div>
           </div>
@@ -327,164 +351,156 @@ export default function BuyRequestForm() {
 
         {/* Step 3: Preferences */}
         {step === 3 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-reem-kufi font-bold text-harbor-petrol mb-4">
-              {t('step3Title') || 'التفضيلات وموعد التسليم'}
-            </h2>
-
+          <div className="space-y-5">
             <div>
-              <Label className="mb-3 block">{t('supplierPreference') || 'تفضيل المورد'}</Label>
-              <RadioGroup 
-                value={formData.supplierPreference} 
-                onValueChange={(v) => handleSelectChange('supplierPreference', v)}
-                className="flex flex-col space-y-2"
-                dir="rtl"
-              >
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <RadioGroupItem value="both" id="sp-both" />
-                  <Label htmlFor="sp-both">لا يوجد تفضيل (مصري أو صيني)</Label>
-                </div>
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <RadioGroupItem value="egyptian" id="sp-egyptian" />
-                  <Label htmlFor="sp-egyptian">مورد مصري فقط</Label>
-                </div>
-                <div className="flex items-center space-x-2 space-x-reverse">
-                  <RadioGroupItem value="chinese" id="sp-chinese" />
-                  <Label htmlFor="sp-chinese">مورد صيني فقط</Label>
-                </div>
-              </RadioGroup>
+              <h2 className="text-xl font-bold font-display text-[#0F4C5C] mb-1">
+                الخطوة 3: التفضيلات وموعد التسليم
+              </h2>
+              <p className="text-xs text-[#465A60]">اختر ما يناسبك للمقارنة بين التوريد المحلي والاستيراد</p>
             </div>
 
             <div>
-              <Label htmlFor="deliveryDate">{t('deliveryDate') || 'موعد التسليم المتوقع'}</Label>
-              <Input 
-                id="deliveryDate" 
-                name="deliveryDate" 
-                type="date"
-                value={formData.deliveryDate} 
-                onChange={handleInputChange} 
-              />
+              <label className="text-sm font-medium text-[#465A60] block mb-2.5">
+                تفضيل مصدر التوريد
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {[
+                  { value: 'both', title: 'مقارنة (مصري وصيني)', desc: 'عروض من الجانبين للمفاضلة' },
+                  { value: 'egyptian', title: 'مصري فقط', desc: 'توريد محلي أسرع ودفع بالجنيه' },
+                  { value: 'chinese', title: 'صيني فقط', desc: 'استيراد مباشر من المصانع الصينية' },
+                ].map(pref => (
+                  <button
+                    key={pref.value}
+                    type="button"
+                    onClick={() => handleSelectChange('supplierPreference', pref.value)}
+                    className={cn(
+                      "p-3.5 rounded-xl border text-start transition-all",
+                      formData.supplierPreference === pref.value
+                        ? "border-[#0F4C5C] bg-[#E3EEED] ring-2 ring-[#0F4C5C]/20"
+                        : "border-[#D2DDDB] bg-white hover:bg-gray-50"
+                    )}
+                  >
+                    <div className="font-semibold text-sm text-[#0F4C5C] mb-1">{pref.title}</div>
+                    <div className="text-xs text-[#465A60]">{pref.desc}</div>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="notes">{t('notes') || 'ملاحظات إضافية'}</Label>
-              <Textarea 
-                id="notes" 
-                name="notes" 
-                value={formData.notes} 
-                onChange={handleInputChange} 
-              />
-            </div>
+            <Input 
+              id="deliveryDate" 
+              name="deliveryDate" 
+              label="الموعد الأقصى لاستلام البضاعة (اختياري)"
+              type="date"
+              value={formData.deliveryDate} 
+              onChange={handleInputChange} 
+            />
+
+            <Textarea 
+              id="notes" 
+              name="notes" 
+              label="ملاحظات أو شروط خاصة"
+              placeholder="أي تعليمات خاصة بشأن العينات، شروط الدفع، أو متطلبات الفحص قبل الشحن..."
+              value={formData.notes} 
+              onChange={handleInputChange} 
+              rows={3}
+            />
           </div>
         )}
 
         {/* Step 4: Contact Info */}
         {step === 4 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-reem-kufi font-bold text-harbor-petrol mb-4">
-              {t('step4Title') || 'بيانات التواصل'}
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="fullName">{t('fullName') || 'الاسم بالكامل'} *</Label>
-                <Input 
-                  id="fullName" 
-                  name="fullName" 
-                  value={formData.fullName} 
-                  onChange={handleInputChange} 
-                  required 
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="companyName">{t('companyName') || 'اسم الشركة'} *</Label>
-                <Input 
-                  id="companyName" 
-                  name="companyName" 
-                  value={formData.companyName} 
-                  onChange={handleInputChange} 
-                  required 
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="phone">{t('phone') || 'رقم التليفون / واتساب'} *</Label>
-                <Input 
-                  id="phone" 
-                  name="phone" 
-                  type="tel"
-                  dir="ltr"
-                  className="text-right"
-                  value={formData.phone} 
-                  onChange={handleInputChange} 
-                  required 
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="email">{t('email') || 'البريد الإلكتروني (اختياري)'}</Label>
-                <Input 
-                  id="email" 
-                  name="email" 
-                  type="email"
-                  dir="ltr"
-                  className="text-right"
-                  value={formData.email} 
-                  onChange={handleInputChange} 
-                />
-              </div>
-
-              <div>
-                <Label>{t('source') || 'عرفتنا منين؟'}</Label>
-                <Select value={formData.source} onValueChange={(v) => handleSelectChange('source', v)}>
-                  <SelectTrigger dir="rtl">
-                    <SelectValue placeholder="اختر..." />
-                  </SelectTrigger>
-                  <SelectContent dir="rtl">
-                    <SelectItem value="facebook">فيسبوك</SelectItem>
-                    <SelectItem value="whatsapp">واتساب</SelectItem>
-                    <SelectItem value="telegram">تليجرام</SelectItem>
-                    <SelectItem value="friend">صديق/معرفة</SelectItem>
-                    <SelectItem value="search">بحث جوجل</SelectItem>
-                    <SelectItem value="other">أخرى</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold font-display text-[#0F4C5C] mb-1">
+                الخطوة 4: بيانات التواصل
+              </h2>
+              <p className="text-xs text-[#465A60]">سنستخدم هذه البيانات لإرسال جدول مقارنة عروض الأسعار والتنسيق معك</p>
             </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input 
+                id="fullName" 
+                name="fullName" 
+                label="الاسم الكريم *"
+                placeholder="أحمد محمود"
+                value={formData.fullName} 
+                onChange={handleInputChange} 
+                required 
+              />
+              <Input 
+                id="companyName" 
+                name="companyName" 
+                label="اسم الشركة / النشاط التجاري *"
+                placeholder="شركة النور للتجارة والتوزيع"
+                value={formData.companyName} 
+                onChange={handleInputChange} 
+                required 
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input 
+                id="phone" 
+                name="phone" 
+                label="رقم الهاتف المحمول (واتساب فعال) *"
+                placeholder="01012345678"
+                type="tel"
+                value={formData.phone} 
+                onChange={handleInputChange} 
+                required 
+              />
+              <Input 
+                id="email" 
+                name="email" 
+                label="البريد الإلكتروني (اختياري)"
+                placeholder="name@company.com"
+                type="email"
+                value={formData.email} 
+                onChange={handleInputChange} 
+              />
+            </div>
+
+            <Select 
+              id="source"
+              label="كيف تعرفت على منصة مرسى؟"
+              value={formData.source} 
+              onChange={(e) => handleSelectChange('source', e.target.value)}
+              options={SOURCE_OPTIONS}
+            />
           </div>
         )}
 
         {/* Navigation Buttons */}
-        <div className="mt-8 flex items-center justify-between pt-6 border-t border-gray-100">
+        <div className="mt-8 flex items-center justify-between pt-5 border-t border-[#D2DDDB]">
           <Button 
-            variant="outline" 
+            variant="ghost" 
             onClick={handlePrev} 
             disabled={step === 1 || isSubmitting}
-            className="text-steel"
           >
-            {t('prev') || 'السابق'}
+            السابق
           </Button>
           
           {step < STEPS ? (
             <Button 
+              variant="primary"
               onClick={handleNext} 
               disabled={!validateStep()}
-              className="bg-harbor-petrol hover:bg-deep-tide text-white px-8"
             >
-              {t('next') || 'التالي'}
+              متابعة
             </Button>
           ) : (
             <Button 
+              variant="signal"
               onClick={handleSubmit} 
               disabled={!validateStep() || isSubmitting}
-              className="bg-signal-yellow hover:bg-yellow-500 text-deep-tide px-8 font-bold"
+              loading={isSubmitting}
             >
-              {isSubmitting ? 'جاري الإرسال...' : (t('submit') || 'إرسال الطلب')}
+              {isSubmitting ? 'جاري الإرسال...' : 'إرسال طلب الشراء'}
             </Button>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

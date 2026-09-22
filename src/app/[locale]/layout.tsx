@@ -2,7 +2,9 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { Bricolage_Grotesque, Reem_Kufi, IBM_Plex_Sans, IBM_Plex_Sans_Arabic } from 'next/font/google';
 import type { Metadata, Viewport } from 'next';
-import './globals.css';
+import { Nav } from '@/components/layout/nav';
+import { Footer } from '@/components/layout/footer';
+import '../globals.css';
 
 const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ['latin'],
@@ -31,8 +33,8 @@ const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: 'Marsa — From request to receipt',
-  description: 'Marsa B2B sourcing platform',
+  title: 'مرسى | Marsa — من الطلب إلى المرسى',
+  description: 'منصة توريد تدير صفقات الاستيراد والمصانع من الطلب حتى وصول البضاعة إلى مخزنك',
 };
 
 export const viewport: Viewport = {
@@ -60,9 +62,13 @@ export default async function RootLayout({
       ${ibmPlexSans.variable} 
       ${ibmPlexSansArabic.variable}
     `}>
-      <body>
+      <body className="min-h-screen flex flex-col bg-[#F3F7F6] text-[#0A2F38]">
         <NextIntlClientProvider messages={messages} locale={locale}>
-          {children}
+          <Nav />
+          <main className="flex-1 pt-16">
+            {children}
+          </main>
+          <Footer locale={locale} />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -1,58 +1,59 @@
-'use server'
+'use server';
 
-import { createClient } from '@supabase/supabase-js'
+import { createBuyRequestRecord } from '@/lib/database';
 
-// Helper to get admin client
-function getAdminClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase URL or Service Role Key is missing')
-  }
-  
-  return createClient(supabaseUrl, supabaseServiceKey)
+export interface BuyRequestFormData {
+  productName: string;
+  category: string;
+  specifications: string;
+  quantity: string;
+  unit: string;
+  budgetMin?: string;
+  budgetMax?: string;
+  currency?: string;
+  supplierPreference?: 'both' | 'egyptian' | 'chinese';
+  deliveryDate?: string;
+  notes?: string;
+  fullName: string;
+  companyName: string;
+  phone: string;
+  email: string;
+  source?: string;
 }
 
-export async function insertBuyRequest(formData: any) {
+export async function insertBuyRequest(formData: BuyRequestFormData) {
   try {
-    const supabase = getAdminClient()
-    
-    // Generate a dummy RFQ number
-    const requestNumber = `RFQ-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
-
-    // Insert into buy_requests table
-    const { error } = await supabase
-      .from('buy_requests')
-      .insert({
-        request_number: requestNumber,
-        product_name: formData.productName,
-        category: formData.category,
-        specifications: formData.specifications,
-        quantity: formData.quantity,
-        unit: formData.unit,
-        budget_min: formData.budgetMin,
-        budget_max: formData.budgetMax,
-        currency: formData.currency,
-        supplier_preference: formData.supplierPreference,
-        delivery_date: formData.deliveryDate,
-        notes: formData.notes,
-        contact_name: formData.fullName,
-        company_name: formData.companyName,
-        phone: formData.phone,
-        email: formData.email,
-        source: formData.source,
-        status: 'new'
-      })
-
-    if (error) {
-      console.error('Error inserting buy request:', error)
-      return { success: false, error: 'Failed to insert request' }
+    // In local sandbox / demo mode without Supabase credentials:
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      const simulatedRfq = `RFQ-${Math.floor(1000 + Math.random() * 9000)}`;
+      return { success: true, requestNumber: simulatedRfq };
     }
 
-    return { success: true, requestNumber }
+    const result = await createBuyRequestRecord({
+      buyer_id: '00000000-0000-0000-0000-000000000000', // anonymous / public RFQ placeholder
+      product_name: formData.productName,
+      category: formData.category,
+      specifications: { description: formData.specifications, notes: formData.notes },
+      quantity: Number(formData.quantity) || 1,
+      unit: formData.unit,
+      budget_min: formData.budgetMin ? Number(formData.budgetMin) : null,
+      budget_max: formData.budgetMax ? Number(formData.budgetMax) : null,
+      budget_currency: formData.currency || 'USD',
+      supplier_pref: (formData.supplierPreference as any) || 'both',
+      delivery_date: formData.deliveryDate || null,
+      notes: formData.notes || null,
+      source: formData.source || null,
+      status: 'pending',
+    });
+
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to submit buy request' };
+    }
+
+    return { success: true, requestNumber: result.requestNumber };
   } catch (error) {
-    console.error('Error in insertBuyRequest:', error)
-    return { success: false, error: 'An unexpected error occurred' }
+    const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred';
+    console.error('Error in insertBuyRequest:', errorMsg);
+    return { success: false, error: errorMsg };
   }
 }
